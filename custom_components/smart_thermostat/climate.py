@@ -364,7 +364,8 @@ class SmartThermostat(ClimateEntity, RestoreEntity, ABC):
         if self._autotune != "none":
             self._pid_controller = None
             self._pid_autotune = pid_controller.PIDAutotune(self._difference, self._lookback,
-                                                            self._min_out, self._max_out,
+                                                            self._min_out - self._output_offset,
+                                                            self._max_out - self._output_offset,
                                                             self._noiseband, time.time)
             _LOGGER.warning("%s: Autotune will run with the target temperature "
                             "set after 10 temperature samples from sensor. Changes submitted "
@@ -374,7 +375,8 @@ class SmartThermostat(ClimateEntity, RestoreEntity, ABC):
             _LOGGER.debug("%s: PID Gains kp = %s, ki = %s, kd = %s", self.unique_id, self._kp,
                           self._ki, self._kd)
             self._pid_controller = pid_controller.PID(self._kp, self._ki, self._kd, self._ke,
-                                                      self._min_out, self._max_out,
+                                                      self._min_out - self._output_offset,
+                                                      self._max_out - self._output_offset,
                                                       self._sampling_period, self._cold_tolerance,
                                                       self._hot_tolerance)
             self._pid_controller.mode = "AUTO"
@@ -721,8 +723,8 @@ class SmartThermostat(ClimateEntity, RestoreEntity, ABC):
             if self._pid_controller is not None:
                 self._pid_controller.clear_samples()
         if self._pid_controller:
-            self._pid_controller.out_max = self._max_out
-            self._pid_controller.out_min = self._min_out
+            self._pid_controller.out_max = self._max_out - self._output_offset
+            self._pid_controller.out_min = self._min_out - self._output_offset
 
     async def async_set_hvac_mode(self, hvac_mode: HVACMode) -> None:
         """Set new target hvac mode."""
@@ -762,8 +764,8 @@ class SmartThermostat(ClimateEntity, RestoreEntity, ABC):
             _LOGGER.error("%s: Unrecognized HVAC mode: %s", self.entity_id, hvac_mode)
             return
         if self._pid_controller:
-            self._pid_controller.out_max = self._max_out
-            self._pid_controller.out_min = self._min_out
+            self._pid_controller.out_max = self._max_out - self._output_offset
+            self._pid_controller.out_min = self._min_out - self._output_offset
         if self._hvac_mode != HVACMode.OFF:
             await self._async_control_heating(calc_pid=True)
         # Ensure we update the current operation after changing the mode
@@ -1062,8 +1064,8 @@ class SmartThermostat(ClimateEntity, RestoreEntity, ABC):
                                     "rule %s: Kp=%s, Ki=%s, Kd=%s", self.entity_id,
                                     self._autotune, self._kp, self._ki, self._kd)
                     self._pid_controller = pid_controller.PID(self._kp, self._ki, self._kd,
-                                                              self._ke, self._min_out,
-                                                              self._max_out, self._sampling_period,
+                                                              self._ke, self._min_out - self._output_offset,
+                                                              self._max_out - self._output_offset, self._sampling_period,
                                                               self._cold_tolerance,
                                                               self._hot_tolerance)
                     self._autotune = "none"
