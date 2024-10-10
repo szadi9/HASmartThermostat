@@ -136,6 +136,7 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
         vol.Optional(const.CONF_LOOKBACK, default=const.DEFAULT_LOOKBACK): vol.All(
             cv.time_period, cv.positive_timedelta),
         vol.Optional(const.CONF_DEBUG, default=False): cv.boolean,
+        vol.Optional(const.CONF_OUTPUT_OFFSET, default=const.DEFAULT_OUTPUT_OFFSET): vol.Coerce(int),
     }
 )
 
@@ -196,6 +197,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
         'autotune': config.get(const.CONF_AUTOTUNE),
         'noiseband': config.get(const.CONF_NOISEBAND),
         'lookback': config.get(const.CONF_LOOKBACK),
+        'output_offset': config.get(const.CONF_OUTPUT_OFFSET),
         const.CONF_DEBUG: config.get(const.CONF_DEBUG),
     }
 
@@ -355,6 +357,7 @@ class SmartThermostat(ClimateEntity, RestoreEntity, ABC):
         self._noiseband = kwargs.get('noiseband')
         self._cold_tolerance = abs(kwargs.get('cold_tolerance'))
         self._hot_tolerance = abs(kwargs.get('hot_tolerance'))
+        self._output_offset = kwargs.get('output_offset')
         self._time_changed = 0
         self._last_sensor_update = time.time()
         self._last_ext_sensor_update = time.time()
@@ -1081,9 +1084,10 @@ class SmartThermostat(ClimateEntity, RestoreEntity, ABC):
             self._i = round(self._pid_controller.integral, 1)
             self._d = round(self._pid_controller.derivative, 1)
             self._e = round(self._pid_controller.external, 1)
+            self._control_output = self._output_offset + self._control_output
             self._control_output = round(self._control_output, self._output_precision)
-            if not self._output_precision:
-                self._control_output = int(self._control_output)
+            # if not self._output_precision:
+            #     self._control_output = int(self._control_output)
             error = self._pid_controller.error
             self._dt = self._pid_controller.dt
         if update:

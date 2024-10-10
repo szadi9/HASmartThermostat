@@ -3,9 +3,9 @@
   "name": "Smart thermostat",
   "codeowners": ["@ScratMan"],
   "dependencies": [],
-  "documentation": "https://github.com/ScratMan/HASmartThermostat",
+  "documentation": "https://github.com/szadi9/HASmartThermostat",
   "iot_class": "local_push",
-  "issue_tracker": "https://github.com/ScratMan/HASmartThermostat/issues",
+  "issue_tracker": "https://github.com/szadi9/HASmartThermostat/issues",
   "requirements": [],
   "version": "2024.6.1"
 }
